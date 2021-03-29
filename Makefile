@@ -1,14 +1,21 @@
-all: test
-    
-clean:
-    rm -rf *.o
-    rm -rf server
+CC=gcc
+CFLAGS=-Wall -Wextra
 
-test: test.o server.o
-    gcc test.o server.o -o test
+OBJS=server.o file.o mime.o hashtable.o llist.o
+
+all: test
+
+test: $(OBJS)
+	gcc -o $@ $^
 
 test.o: test.c
-    gcc -c test.c -o test.o
 
 server.o: server.c server.h
-    gcc -c server.c -o server.o
+
+file.o: file.c file.h
+
+mime.o: mime.c mime.h
+
+hashtable.o: hashtable.c hashtable.h
+
+llist.o: llist.c llist.h

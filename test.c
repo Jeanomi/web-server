@@ -131,24 +131,23 @@ void handle_http_request(int fd){
             get_file(fd,request_path);
         }
     }else{
-        fprintf(stderr, "Unknow request type \"%s\"\n", request_type);
+        fprintf(stderr, "Unknown request type \"%s\"\n", request_type);
         return;
     }
 }
 
 void launch(struct Server *svr){
     char buffer[2048];
-    char file[30] = "index.html";
     //char resourcePath[] = "index.html";
     //char resourceAddr[] = "127.0.0.1:4000";
     //char *hello = "HTTP/1.1 200 OK\n Date: Thurs, 18 Mar 2021 09:27:00 GMT+7\nServer: Apache/2.4.41 (Ubuntu)\nLast-Modified:Thurs 18 Mar 2021 10:00:00\nContent-Type: text/html\nConnection: Closed\n\n<html><body><h1>Hello, World!</h1></body></html>";
     //char *hello = "GET /index.html HTTP/1.1\r\nHost: 127.0.0.1:4000\r\nContent-Type: text/plain\r\n\r\n";
-    char *webpage = "HTTP/1.1 200 OK\r\n"
-                  "Content-Type: text/html\r\n\r\n"
-                  "<!DOCTYPE html>\r\n"
-                  "<html><head><title>Home Page</title></head>\r\n"
-                  "<body><center><h1>Hello World!</h1><br>\r\n"
-                  "<img src=\"favicon.ico\"></center></body></html>\r\n";
+    char *webpage = "GET /index.html HTTP/1.1\r\n\r\n";
+//                  "Content-Type: text/html\r\n"
+//                  "<!DOCTYPE html>\r\n"
+//                  "<html><head><title>Home Page</title></head>\r\n"
+//                  "<body><center><h1>Hello World!</h1><br>\r\n"
+//                  "<img src=\"favicon.ico\"></center></body></html>\r\n";
     int addr_len = sizeof(svr->address);
     int client;
     int img;
@@ -174,9 +173,10 @@ void launch(struct Server *svr){
                 write(client, webpage, strlen(webpage));
             }
         }
+//        write(client, webpage, strlen(webpage));
+//        handle_http_request(client);
 
         close(client);
-        printf("Closing ...\n");
     }
 }
 
