@@ -19,7 +19,7 @@ struct file_data *file_load(char *filename){
     }
 
     //Make sure it's a regular file
-    if (!buf.st_mode & S_IFREG){
+    if (!(buf.st_mode & S_IFREG)){
         return NULL;
     }
 

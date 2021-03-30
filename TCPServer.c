@@ -9,67 +9,16 @@
 #include <string.h>
 #include <unistd.h>
 //#include <sys/types.h>
-#include <fcntl.h>
-#include <sys/sendfile.h>
-#define BUFFER_SIZE 65536
+//#include <fcntl.h>
+//#include <sys/sendfile.h>
+#include "file.h"
+#define BUFFER_SIZE 2048
 #define SA struct sockaddr
 #define PORT 8080
 
-
-void handle_request(int sockfd){
-    char request[BUFFER_SIZE];
-    char request_type[8];       //GET
-    char request_path[1024];    //info
-    char request_protocol[128]; //HTTP/1.1
-
-    char response[BUFFER_SIZE];
-    int response_length = sprintf(response, "HTTP/1.1 200 OK\n"
-                                            "Connection: close\n"
-                                            "Content-Type: image/jpeg\n"
-                                            "Content_Length: 6051\n"
-                                            "\n");
-    int img;
-
-    int bytes_recv = recv(sockfd, request, BUFFER_SIZE - 1, 0);
-
-    if(bytes_recv < 0){
-        perror("recv");
-        return;
-    }
-
-    request[bytes_recv] = '\0';
-
-    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
-    printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
-
-    img = open(request_path, O_RDONLY);
-    write(sockfd, response, response_length);
-    sendfile(sockfd, img, NULL, 6051);
-    close(img);
-
-    close(sockfd);
-
-//    for (;;){
-//        bzero(buff, sizeof(buff));
-//
-//        //read message from client
-//        read(sockfd, buff, sizeof(buff));
-//
-//        bzero(buff, sizeof(buff));
-//        n = 0;
-//        //copy server message in the buffer
-//        while ((buff[n++] = getchar()) != '\n')
-//            ;
-//        //send the buffer to client
-//        write(sockfd, buff, sizeof(buff));
-//
-//        //exit to end chat
-//        if((strncmp(buff, "exit", 4)) == 0){
-//            printf("Server Exit ...\n");
-//            break;
-//        }
-//    }
-}
+void send_response(int fd, void *body);
+void get_file(int fd, char *request_path);
+void handle_request(int sockfd);
 
 int main(){
     int server_fd, conn_fd, len;
@@ -112,14 +61,97 @@ int main(){
         } else {
             printf("Server accept client...\n");
         }
-
         if (!fork()) {
             handle_request(conn_fd);
         }
-
-
     }
 
     close(server_fd);
     return 0;
+}
+
+
+void send_response(int fd, void *body){
+    printf("2.0\n");
+    char response[BUFFER_SIZE];
+    printf("2.1\n");
+    int response_length = sprintf(response, "HTTP/1.1 200 OK\n"
+                                            "Connection: close\n"
+                                            "Content-Type: text/html\n"
+                                            "Content_Length: 170\n"
+                                            "\n");
+    printf("2.2\n");
+    memcpy(response + response_length, body, 170);
+    printf("2.3\n");
+    int rv = write(fd, response, response_length + 170);
+    printf("2.4\n");
+    if (rv < 0){
+        perror("send");
+    }
+
+    //return rv;
+}
+
+void get_file(int fd, char *request_path){
+    char filepath[BUFFER_SIZE];
+    struct file_data * fileData;
+
+    snprintf(filepath, sizeof(filepath), "%s",request_path);
+    fileData = file_load(filepath);
+
+    printf("2\n");
+    send_response(fd, fileData->data);
+
+    printf("3\n");
+    file_free(fileData);
+}
+
+void handle_request(int sockfd){
+    char request[BUFFER_SIZE];
+    char request_type[8];       //GET
+    char request_path[1024];    //info
+    char request_protocol[128]; //HTTP/1.1
+
+//    char response[BUFFER_SIZE];
+//    int response_length = sprintf(response, "HTTP/1.1 200 OK\n"
+//                                            "Connection: close\n"
+//                                            "Content-Type: text/html\n"
+//                                            "Content_Length: 161\n"
+//                                            "\n");
+
+    int bytes_recv = recv(sockfd, request, BUFFER_SIZE - 1, 0);
+
+    if(bytes_recv < 0){
+        perror("recv");
+        return;
+    }
+
+    request[bytes_recv] = '\0';
+
+    sscanf(request, "%s %s %s", request_type, request_path, request_protocol);
+    printf("Request: %s %s %s\n", request_type, request_path, request_protocol);
+
+    printf("1\n");
+    get_file(sockfd, request_path);
+
+//    for (;;){
+//        bzero(buff, sizeof(buff));
+//
+//        //read message from client
+//        read(sockfd, buff, sizeof(buff));
+//
+//        bzero(buff, sizeof(buff));
+//        n = 0;
+//        //copy server message in the buffer
+//        while ((buff[n++] = getchar()) != '\n')
+//            ;
+//        //send the buffer to client
+//        write(sockfd, buff, sizeof(buff));
+//
+//        //exit to end chat
+//        if((strncmp(buff, "exit", 4)) == 0){
+//            printf("Server Exit ...\n");
+//            break;
+//        }
+//    }
 }
