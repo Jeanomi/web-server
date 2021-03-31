@@ -36,7 +36,7 @@
 void send_request(int fd){
     char buff[BUFFER_SIZE];
     char request[BUFFER_SIZE];
-    int request_length = sprintf(request, "GET index.html HTTP/1.1\r\n");
+    int request_length = sprintf(request, "GET /serverroot/index.html HTTP/1.1\r\n");
 
     //write(fd, "GET /serverroot/index.html HTTP/1.1\r\n", strlen("GET /serverroot/index.html HTTP/1.1\r\n"));
     printf("1\n");
