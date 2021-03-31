@@ -16,9 +16,9 @@
 #define SA struct sockaddr
 #define PORT 8080
 
-void send_response(int fd, void *body);
-void get_file(int fd, char *request_path);
 void handle_request(int sockfd);
+void get_file(int fd, char *request_path);
+void send_response(int fd, void *body);
 
 int main(){
     int server_fd, conn_fd, len;

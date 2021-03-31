@@ -6,13 +6,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 struct file_data *file_load(char *filename){
     char *buffer, *p;
+    //const char delim[2] = "/";
     struct stat buf;
     int bytes_read, bytes_remaining, total_bytes = 0;
 
+//    filename = strtok(file, "\0");
+//    filename = strtok(NULL, "/");
+
+    printf("%s\n", filename);
     //Get the file size
     if (stat(filename, &buf) == -1){
         return NULL;
@@ -29,7 +35,7 @@ struct file_data *file_load(char *filename){
     if (fp == NULL){
         return NULL;
     }
-
+    printf("pass fp = NULL\n");
     //Allocate that many bytes
     bytes_remaining = buf.st_size;
     p = buffer = malloc(bytes_remaining);
@@ -50,6 +56,7 @@ struct file_data *file_load(char *filename){
         total_bytes +=bytes_read;
     }
 
+    printf("pass read = NULL\n");
     //Allocate the file data struct
     struct file_data *filedata = malloc(sizeof *filedata);
 
