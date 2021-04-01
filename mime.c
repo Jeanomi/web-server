@@ -49,6 +49,9 @@ char *mime_type_get(char *filename){
   if (strcmp(ext, "png") == 0) {
     return "image/png";
   }
+  if (strcmp(ext, "mp4") == 0){
+      return "video/mp4";
+  }
 
   return DEFAULT_MIME_TYPE;
 }

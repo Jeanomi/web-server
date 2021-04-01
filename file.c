@@ -12,15 +12,12 @@
 struct file_data *file_load(char *file){
     char *buffer, *p;
     char *filename = file;
-    //const char delim[2] = "/";
     struct stat buf;
     int bytes_read, bytes_remaining, total_bytes = 0;
 
-
-
-    if (filename[0] == '/'){
-        memmove(filename, filename+1, strlen(filename));
-    }
+//    if (filename[0] == '/'){
+//        memmove(filename, filename+1, strlen(filename));
+//    }
 //    filename = strtok(file, "\0");
 //    filename = strtok(NULL, "/");
 

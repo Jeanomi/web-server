@@ -12,13 +12,19 @@
 //#include <fcntl.h>
 //#include <sys/sendfile.h>
 #include "file.h"
+#include "mime.h"
+
 #define BUFFER_SIZE 2048
 #define SA struct sockaddr
 #define PORT 8080
+#define SERVER_ROOT "./serverroot"
+#define SERVER_FILES "./serverfiles"
+
 
 void handle_request(int sockfd);
 void get_file(int fd, char *request_path);
-void send_response(int fd, void *body);
+void send_response(int fd, char *header,void *body, char *content_type, int content_length);
+void send_resp_404(int fd);
 
 int main(){
     int server_fd, conn_fd, len;
@@ -71,19 +77,20 @@ int main(){
 }
 
 
-void send_response(int fd, void *body){
+void send_response(int fd, char *header, void *body, char *content_type, int content_length){
     printf("2.0\n");
     char response[BUFFER_SIZE];
     printf("2.1\n");
-    int response_length = sprintf(response, "HTTP/1.1 200 OK\n"
+    int response_length = sprintf(response, "%s\n"
                                             "Connection: close\n"
-                                            "Content-Type: text/html\n"
-                                            "Content_Length: 170\n"
-                                            "\n");
+                                            "Content-Type: %s\n"
+                                            "Content_Length: %d\n"
+                                            "\n",
+                                            header, content_type, content_length);
     printf("2.2\n");
-    memcpy(response + response_length, body, 170);
+    memcpy(response + response_length, body, content_length);
     printf("2.3\n");
-    int rv = write(fd, response, response_length + 170);
+    int rv = write(fd, response, response_length + content_length);
     printf("2.4\n");
     if (rv < 0){
         perror("send");
@@ -95,12 +102,22 @@ void send_response(int fd, void *body){
 void get_file(int fd, char *request_path){
     char filepath[BUFFER_SIZE];
     struct file_data * fileData;
+    char *mime_type;
 
-    snprintf(filepath, sizeof(filepath), "%s",request_path);
+    snprintf(filepath, sizeof(filepath), "%s%s", SERVER_ROOT, request_path);
     fileData = file_load(filepath);
 
+//    if (fileData == NULL){
+//        snprintf(filepath, sizeof(filepath), "%s/index.html", SERVER_ROOT);
+//    }
+    mime_type = mime_type_get(filepath);
+
+    if (fileData == NULL){
+        send_resp_404(fd);
+        return;
+    }
     printf("2\n");
-    send_response(fd, fileData->data);
+    send_response(fd, "HTTP/1.1 200 OK", fileData->data, mime_type, fileData->size);
 
     printf("3\n");
     file_free(fileData);
@@ -133,6 +150,9 @@ void handle_request(int sockfd){
 
     printf("1\n");
     get_file(sockfd, request_path);
+    //if (strcmp(request_type == "GET") == 0) {
+
+    //}
 
 //    for (;;){
 //        bzero(buff, sizeof(buff));
@@ -154,4 +174,24 @@ void handle_request(int sockfd){
 //            break;
 //        }
 //    }
+}
+
+void send_resp_404(int fd){
+    char filepath[BUFFER_SIZE];
+    struct file_data * fileData;
+    char *mime_type;
+
+    snprintf(filepath, sizeof(filepath), "%s/404.html", SERVER_FILES);
+    fileData = file_load(filepath);
+
+    if (fileData == NULL) {
+        fprintf(stderr, "Cannot find system 404 file\n");
+        exit(3);
+    }
+
+    mime_type = mime_type_get(filepath);
+
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", fileData->data, mime_type, fileData->size);
+
+    file_free(fileData);
 }
