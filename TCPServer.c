@@ -14,7 +14,7 @@
 #include "file.h"
 #include "mime.h"
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 2000000
 #define SA struct sockaddr
 #define PORT 8080
 #define SERVER_ROOT "./serverroot"
@@ -70,9 +70,10 @@ int main(){
         if (!fork()) {
             handle_request(conn_fd);
         }
+        close(conn_fd);
     }
 
-    close(server_fd);
+    //close(server_fd);
     return 0;
 }
 
