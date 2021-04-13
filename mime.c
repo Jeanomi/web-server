@@ -15,43 +15,46 @@ char *strlower(char *s)
 
 //Return mime type for given filename
 char *mime_type_get(char *filename){
-  char *ext = strrchr(filename, '.');
+    char *ext = strrchr(filename, '.');
 
-  if(ext == NULL){
+    if(ext == NULL){
     return DEFAULT_MIME_TYPE;
-  }
+    }
 
-  ext++;
+    ext++;
 
-  strlower(ext);
+    strlower(ext);
 
-  if(strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0){
-    return "text/html";
-  }
-  if (strcmp(ext, "jpeg") == 0 || strcmp(ext, "jpg") == 0) {
-    return "image/jpg";
-  }
-  if (strcmp(ext, "css") == 0) {
-    return "text/css";
-  }
-  if (strcmp(ext, "js") == 0) {
-    return "application/javascript";
-  }
-  if (strcmp(ext, "json") == 0) {
-    return "application/json";
-  }
-  if (strcmp(ext, "txt") == 0) {
-    return "text/plain";
-  }
-  if (strcmp(ext, "gif") == 0) {
-    return "image/gif";
-  }
-  if (strcmp(ext, "png") == 0) {
-    return "image/png";
-  }
-  if (strcmp(ext, "mp4") == 0){
-      return "video/mp4";
-  }
+    if(strcmp(ext, "html") == 0 || strcmp(ext, "htm") == 0){
+        return "text/html";
+    }
+    if (strcmp(ext, "jpeg") == 0 || strcmp(ext, "jpg") == 0) {
+        return "image/jpg";
+    }
+    if (strcmp(ext, "css") == 0) {
+        return "text/css";
+    }
+    if (strcmp(ext, "js") == 0) {
+        return "application/javascript";
+    }
+    if (strcmp(ext, "json") == 0) {
+        return "application/json";
+    }
+    if (strcmp(ext, "txt") == 0) {
+        return "text/plain";
+    }
+    if (strcmp(ext, "gif") == 0) {
+        return "image/gif";
+    }
+    if (strcmp(ext, "png") == 0) {
+        return "image/png";
+    }
+    if (strcmp(ext, "mp4") == 0){
+        return "video/mp4";
+    }
+    if (strcmp(ext, "mp3") == 0){
+        return "audio/mp3";
+    }
 
-  return DEFAULT_MIME_TYPE;
+    return DEFAULT_MIME_TYPE;
 }

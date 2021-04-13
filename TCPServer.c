@@ -14,7 +14,7 @@
 #include "file.h"
 #include "mime.h"
 
-#define BUFFER_SIZE 2000000
+#define BUFFER_SIZE 65536
 #define SA struct sockaddr
 #define PORT 8080
 #define SERVER_ROOT "./serverroot"
@@ -23,7 +23,8 @@
 
 void handle_request(int sockfd);
 void get_file(int fd, char *request_path);
-void send_response(int fd, char *header,void *body, char *content_type, int content_length);
+//void send_response(int fd, char *header,void *body, char *content_type, int content_length, char *file_path);
+void send_response(int fd, char *header, char *content_type, int content_length, char *file_path);
 void send_resp_404(int fd);
 
 int main(){
@@ -72,32 +73,94 @@ int main(){
         }
         close(conn_fd);
     }
-
-    //close(server_fd);
-    return 0;
 }
 
 
-void send_response(int fd, char *header, void *body, char *content_type, int content_length){
+void send_response(int fd, char *header, char *content_type, int content_length, char *file_path){
     printf("2.0\n");
-    char response[BUFFER_SIZE];
+    char *response;
+    char response_header[BUFFER_SIZE];
+    //char *ptr, *ptr2;
+
+    //int total_length;
+    FILE *f = fopen(file_path, "rb");
+
     printf("2.1\n");
-    int response_length = sprintf(response, "%s\n"
+
+    if(f == NULL){
+        printf("File open error\n");
+    }
+
+    int response_header_length = sprintf(response_header, "%s\n"
                                             "Connection: close\n"
                                             "Content-Type: %s\n"
                                             "Content_Length: %d\n"
                                             "\n",
                                             header, content_type, content_length);
-    printf("2.2\n");
-    memcpy(response + response_length, body, content_length);
-    printf("2.3\n");
-    int rv = write(fd, response, response_length + content_length);
-    printf("2.4\n");
-    if (rv < 0){
-        perror("send");
-    }
 
-    //return rv;
+    printf("2.2\n");
+    write(fd, response_header, response_header_length);
+    printf("2.3\n");
+
+    while (1){
+        unsigned char buff[1024] = {0};
+        int nread = fread(buff, 1, 1024, f);
+
+        if(nread > 0){
+            write(fd, buff, nread);
+        }
+        if(nread < 1024){
+            if(feof(f)){
+                printf("End of file\n");
+            }
+            if(ferror(f)){
+                printf("Error reading\n");
+            }
+            break;
+        }
+    }
+/*
+    while (total_length > 0) {
+        if (total_length < 4000){
+//            memcpy(ptr2, ptr, 1500);
+            memcpy(buff, response, total_length);
+            int rv = write(fd, buff, strlen(buff));
+            if (rv < 0) {
+                perror("send");
+            }
+//            int rf = fputs(ptr2, f);
+//            if(rf < 0){
+//                perror("write");
+//            }
+//            ptr2 = ptr;
+            total_length -= total_length;
+        }else {
+//            memcpy(ptr2, ptr, 4000);
+            //int rv = send(fd, ptr, 1500, 0);
+            while ( part_size >= 0) {
+                memcpy(buff, ptr, total_length);
+                int rv = write(fd, buff, strlen(buff));
+                if (rv < 0) {
+                    perror("send");
+                }
+//            int rf = fputs(ptr2, f);
+//            if(rf < 0){
+//                perror("write");
+//            }
+                *ptr = *(ptr + rv);
+                total_length -= rv;
+                part_size--;
+            }
+        }
+    }
+    */
+
+    printf("2.4\n");
+//    if (rv < 0) {
+//        perror("send");
+//    }
+//    free(response);
+    fclose(f);
 }
 
 void get_file(int fd, char *request_path){
@@ -118,7 +181,7 @@ void get_file(int fd, char *request_path){
         return;
     }
     printf("2\n");
-    send_response(fd, "HTTP/1.1 200 OK", fileData->data, mime_type, fileData->size);
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, fileData->size, filepath);
 
     printf("3\n");
     file_free(fileData);
@@ -129,13 +192,6 @@ void handle_request(int sockfd){
     char request_type[8];       //GET
     char request_path[1024];    //info
     char request_protocol[128]; //HTTP/1.1
-
-//    char response[BUFFER_SIZE];
-//    int response_length = sprintf(response, "HTTP/1.1 200 OK\n"
-//                                            "Connection: close\n"
-//                                            "Content-Type: text/html\n"
-//                                            "Content_Length: 161\n"
-//                                            "\n");
 
     int bytes_recv = recv(sockfd, request, BUFFER_SIZE - 1, 0);
 
@@ -151,30 +207,6 @@ void handle_request(int sockfd){
 
     printf("1\n");
     get_file(sockfd, request_path);
-    //if (strcmp(request_type == "GET") == 0) {
-
-    //}
-
-//    for (;;){
-//        bzero(buff, sizeof(buff));
-//
-//        //read message from client
-//        read(sockfd, buff, sizeof(buff));
-//
-//        bzero(buff, sizeof(buff));
-//        n = 0;
-//        //copy server message in the buffer
-//        while ((buff[n++] = getchar()) != '\n')
-//            ;
-//        //send the buffer to client
-//        write(sockfd, buff, sizeof(buff));
-//
-//        //exit to end chat
-//        if((strncmp(buff, "exit", 4)) == 0){
-//            printf("Server Exit ...\n");
-//            break;
-//        }
-//    }
 }
 
 void send_resp_404(int fd){
@@ -192,7 +224,7 @@ void send_resp_404(int fd){
 
     mime_type = mime_type_get(filepath);
 
-    send_response(fd, "HTTP/1.1 404 NOT FOUND", fileData->data, mime_type, fileData->size);
+    send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, fileData->size, filepath);
 
     file_free(fileData);
 }
