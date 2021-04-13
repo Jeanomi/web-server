@@ -78,7 +78,7 @@ int main(){
 
 void send_response(int fd, char *header, char *content_type, int content_length, char *file_path){
     printf("2.0\n");
-    char *response;
+//    char *response;
     char response_header[BUFFER_SIZE];
     //char *ptr, *ptr2;
 
@@ -98,9 +98,19 @@ void send_response(int fd, char *header, char *content_type, int content_length,
                                             "\n",
                                             header, content_type, content_length);
 
+//    response = calloc(response_header_length + content_length + 1, sizeof(char));
     printf("2.2\n");
+//    memcpy(response, response_header, response_header_length);
+//    memcpy(response + response_header_length, body, content_length);
     write(fd, response_header, response_header_length);
     printf("2.3\n");
+
+//    ptr = response;
+//    ptr2 = response;
+//    int rv = write(fd, response, response_header_length + content_length);
+
+//    total_length = response_header_length + content_length;
+//    part_size = total_length / 4000;
 
     while (1){
         unsigned char buff[1024] = {0};
